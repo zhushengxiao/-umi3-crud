@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
-import { Table, Tag, Space, Modal, Button, Popconfirm } from 'antd';
-import { connect } from 'umi';
+import React, { useState, FC } from 'react';
+import { Table, Tag, Space, Modal, Button, Popconfirm, message } from 'antd';
+import { connect, Dispatch, Loading, UserState } from 'umi';
 import UserModal from '@/pages/users/components/UserModal';
+import { SingleUserType, FormValues } from './data.d';
 
-const index = ({ users, dispatch }) => {
+interface UserPageProps {
+  users: UserState;
+  dispatch: Dispatch;
+  userListLoading: boolean;
+}
+
+const UserListPage: FC<UserPageProps> = ({
+  users,
+  dispatch,
+  userListLoading,
+}) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [record, setRecord] = useState(undefined);
+  const [record, setRecord] = useState<SingleUserType | undefined>(undefined);
 
-  const editHandler = record => {
+  const editHandler = (record: SingleUserType) => {
     setModalVisible(true);
     setRecord(record);
   };
@@ -17,7 +28,7 @@ const index = ({ users, dispatch }) => {
   };
 
   // 删除 点击确认
-  const confirm = record => {
+  const confirm = (record: SingleUserType) => {
     const id = record.id;
     console.log('confirm', id);
     console.log('delete => Click on Yes');
@@ -34,7 +45,7 @@ const index = ({ users, dispatch }) => {
     console.log('delete => Click on No');
   };
 
-  const onFinish = values => {
+  const onFinish = (values: FormValues) => {
     let id = 0;
     if (record) {
       id = record.id;
@@ -64,7 +75,7 @@ const index = ({ users, dispatch }) => {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
-      render: text => <a>{text}</a>,
+      render: (text: String) => <a>{text}</a>,
     },
 
     {
@@ -85,7 +96,7 @@ const index = ({ users, dispatch }) => {
     {
       title: 'Action',
       key: 'action',
-      render: (text, record) => (
+      render: (text: String, record: SingleUserType) => (
         <Space size="middle">
           <a
             onClick={() => {
@@ -122,7 +133,12 @@ const index = ({ users, dispatch }) => {
       <Button type="primary" onClick={addHandler}>
         添加联系人
       </Button>
-      <Table columns={columns} dataSource={users.data} rowKey="id" />
+      <Table
+        columns={columns}
+        dataSource={users.data}
+        rowKey="id"
+        loading={userListLoading}
+      />
       <UserModal
         visible={modalVisible}
         closeHandler={closeHandler}
@@ -133,10 +149,17 @@ const index = ({ users, dispatch }) => {
   );
 };
 
-const mapStateToProps = ({ users }) => {
+const mapStateToProps = ({
+  users,
+  loading,
+}: {
+  users: UserState;
+  loading: Loading;
+}) => {
   return {
     users,
+    userListLoading: loading.models.users,
   };
 };
 
-export default connect(mapStateToProps)(index);
+export default connect(mapStateToProps)(UserListPage);

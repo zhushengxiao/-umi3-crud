@@ -1,7 +1,15 @@
-import { Modal, Form, Input, Button, Checkbox } from 'antd';
-import React, { useEffect } from 'react';
+import { Modal, Form, Input, Button, Checkbox, message } from 'antd';
+import React, { useEffect, FC } from 'react';
+import { SingleUserType, FormValues } from '../data.d';
 
-const UserModal = props => {
+interface UserModalProps {
+  visible: boolean;
+  record: SingleUserType | undefined;
+  closeHandler: () => void; //是一个无参数的函数，没有返回值
+  onFinish: (values: FormValues) => void;
+}
+
+const UserModal: FC<UserModalProps> = props => {
   const [form] = Form.useForm();
   const { visible, record, closeHandler, onFinish } = props;
   // 接收2个参数, 第一个是函数m,第二个是值(当它改变后触发)
@@ -18,8 +26,9 @@ const UserModal = props => {
     form.submit();
   };
 
-  const onFinishFailed = errorInfo => {
+  const onFinishFailed = (errorInfo: any) => {
     console.log('Failed:', errorInfo);
+    message.error(errorInfo.errorFields[0].errors[0]);
   };
   return (
     <div>

@@ -1,8 +1,21 @@
-import React from 'react';
-import { Table, Tag, Space } from 'antd';
+import React, { useState } from 'react';
+import { Table, Tag, Space, Modal, Button } from 'antd';
 import { connect } from 'umi';
+import UserModal from '@/pages/users/components/UserModal';
 
 const index = ({ users }) => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [record, setRecord] = useState(undefined);
+
+  const editHandler = record => {
+    setModalVisible(true);
+    setRecord(record);
+  };
+
+  const closeHandler = () => {
+    setModalVisible(false);
+  };
+
   const columns = [
     {
       title: 'Name',
@@ -10,10 +23,16 @@ const index = ({ users }) => {
       key: 'name',
       render: text => <a>{text}</a>,
     },
+
     {
-      title: 'Age',
-      dataIndex: 'age',
-      key: 'age',
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+    },
+    {
+      title: 'Create Time',
+      dataIndex: 'create_time',
+      key: 'create_time',
     },
     {
       title: 'Address',
@@ -21,31 +40,18 @@ const index = ({ users }) => {
       key: 'address',
     },
     {
-      title: 'Tags',
-      key: 'tags',
-      dataIndex: 'tags',
-      render: tags => (
-        <>
-          {tags.map(tag => {
-            let color = tag.length > 5 ? 'geekblue' : 'green';
-            if (tag === 'loser') {
-              color = 'volcano';
-            }
-            return (
-              <Tag color={color} key={tag}>
-                {tag.toUpperCase()}
-              </Tag>
-            );
-          })}
-        </>
-      ),
-    },
-    {
       title: 'Action',
       key: 'action',
       render: (text, record) => (
         <Space size="middle">
-          <a>Invite {record.name}</a>
+          <a
+            onClick={() => {
+              editHandler(record);
+            }}
+          >
+            Edit
+          </a>
+          &nbsp; &nbsp; &nbsp;
           <a>Delete</a>
         </Space>
       ),
@@ -54,7 +60,12 @@ const index = ({ users }) => {
 
   return (
     <div className="list-table">
-      <Table columns={columns} dataSource={users} />
+      <Table columns={columns} dataSource={users.data} />
+      <UserModal
+        visible={modalVisible}
+        closeHandler={closeHandler}
+        record={record}
+      ></UserModal>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { Reducer, Effect, Subscription } from 'umi';
-import { getRemoteList } from './service';
+import { getRemoteList, editRecord, deleteRecord, addRecord } from './service';
 
 interface UserModolType {
   namespace: 'users';
@@ -9,6 +9,9 @@ interface UserModolType {
   };
   effects: {
     getRemote: Effect;
+    edit: Effect;
+    delete: Effect;
+    add: Effect;
   };
   subscriptions: {
     setup: Subscription;
@@ -25,30 +28,6 @@ const UserModel: UserModolType = {
   // reducers 同步
   reducers: {
     getList(state, { payload }) {
-      // state 上一次的数据
-      //   const data = [
-      //     {
-      //       key: '1',
-      //       name: 'John Brown',
-      //       age: 32,
-      //       address: 'New York No. 1 Lake Park',
-      //       tags: ['nice', 'developer'],
-      //     },
-      //     {
-      //       key: '2',
-      //       name: 'Jim Green',
-      //       age: 42,
-      //       address: 'London No. 1 Lake Park',
-      //       tags: ['loser'],
-      //     },
-      //     {
-      //       key: '3',
-      //       name: 'Joe Black',
-      //       age: 32,
-      //       address: 'Sidney No. 1 Lake Park',
-      //       tags: ['cool', 'teacher'],
-      //     },
-      //   ];
       console.log('reduces ->', payload);
       return payload;
     },
@@ -62,6 +41,28 @@ const UserModel: UserModolType = {
       yield put({
         type: 'getList',
         payload: data,
+      });
+    },
+    *edit({ payload: { id, values } }, { put, call }) {
+      const data = yield call(editRecord, { id, values });
+      console.log('data->', id);
+      console.log('data->', values);
+      yield put({
+        type: 'getRemote',
+      });
+    },
+    *add({ payload: { values } }, { put, call }) {
+      const data = yield call(addRecord, { values });
+      console.log('data->', values);
+      yield put({
+        type: 'getRemote',
+      });
+    },
+    *delete({ payload: { id } }, { put, call }) {
+      const data = yield call(deleteRecord, { id });
+      console.log('*delete->', id);
+      yield put({
+        type: 'getRemote',
       });
     },
   },

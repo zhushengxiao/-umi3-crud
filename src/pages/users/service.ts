@@ -15,8 +15,8 @@ const errorHandler = function(error: any) {
 
 const extendRequest = extend({ errorHandler });
 
-export const getRemoteList = async () => {
-  return extendRequest('/api/users', {
+export const getRemoteList = async ({ page, per_page }) => {
+  return extendRequest(`/api/users?page=${page}&&per_page=${per_page}`, {
     method: 'get',
   })
     .then(response => {

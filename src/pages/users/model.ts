@@ -52,41 +52,56 @@ const UserModel: UserModolType = {
   },
   // effects 异步
   effects: {
-    *getRemote(action, { put, call }) {
+    *getRemote({ payload: { page, per_page } }, { put, call }) {
       // yield put()
-      const data = yield call(getRemoteList);
+      const data = yield call(getRemoteList, { page, per_page });
       yield put({
         type: 'getList',
         payload: data,
       });
     },
-    *edit({ payload: { id, values } }, { put, call }) {
+    *edit({ payload: { id, values } }, { put, call, select }) {
       const data = yield call(editRecord, { id, values });
       if (data) {
+        const { page, per_page } = yield select(state => state.users.meta);
         yield put({
           type: 'getRemote',
+          payload: {
+            page,
+            per_page,
+          },
         });
         message.success('编辑记录 成功');
       } else {
         message.error('编辑记录 失败');
       }
     },
-    *add({ payload: { values } }, { put, call }) {
+    *add({ payload: { values } }, { put, call, select }) {
       const data = yield call(addRecord, { values });
       if (data) {
+        const { page, per_page } = yield select(state => state.users.meta);
         yield put({
           type: 'getRemote',
+          payload: {
+            page,
+            per_page,
+          },
         });
         message.success('添加记录 成功');
       } else {
         message.error('添加记录 失败');
       }
     },
-    *delete({ payload: { id } }, { put, call }) {
+    *delete({ payload: { id } }, { put, call, select }) {
       const data = yield call(deleteRecord, { id });
       if (data) {
+        const { page, per_page } = yield select(state => state.users.meta);
         yield put({
           type: 'getRemote',
+          payload: {
+            page,
+            per_page,
+          },
         });
         message.success('删除记录 成功');
       } else {
@@ -101,7 +116,13 @@ const UserModel: UserModolType = {
       return history.listen(({ pathname }) => {
         if (pathname === '/users') {
           dispatch({
+            //   type: 'getRemote',
             type: 'getRemote',
+            // });
+            payload: {
+              page: 1,
+              per_page: 5,
+            },
           });
         }
       });

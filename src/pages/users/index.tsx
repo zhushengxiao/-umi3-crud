@@ -1,8 +1,29 @@
-import React, { useState, FC } from 'react';
-import { Table, Tag, Space, Modal, Button, Popconfirm, message } from 'antd';
+import React, { useState, FC, useRef } from 'react';
+import {
+  Table,
+  Tag,
+  Space,
+  Modal,
+  Button,
+  Popconfirm,
+  message,
+  Pagination,
+} from 'antd';
+import ProTable, {
+  ProColumns,
+  TableDropdown,
+  ActionType,
+} from '@ant-design/pro-table';
 import { connect, Dispatch, Loading, UserState } from 'umi';
 import UserModal from '@/pages/users/components/UserModal';
 import { SingleUserType, FormValues } from './data.d';
+import { getRemoteList } from './service';
+
+// interface ActionType {
+//   reload: () => void;
+//   fetchMore: () => void;
+//   reset: () => void;
+// }
 
 interface UserPageProps {
   users: UserState;
@@ -17,10 +38,49 @@ const UserListPage: FC<UserPageProps> = ({
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [record, setRecord] = useState<SingleUserType | undefined>(undefined);
+  const ref = useRef<ActionType>();
 
   const editHandler = (record: SingleUserType) => {
     setModalVisible(true);
     setRecord(record);
+  };
+
+  const requestHandler = async ({ pageSize, current }) => {
+    const users = await getRemoteList({
+      page: current,
+      per_page: pageSize,
+    });
+    return {
+      data: users.data,
+      success: true,
+      total: users.meta.total,
+    };
+  };
+
+  // 刷新reload
+  const reloadHandler = () => {
+    ref.current.reload();
+  };
+
+  const paginationHandler = (page, pageSize) => {
+    dispatch({
+      type: 'users/getRemote',
+      payload: {
+        page,
+        per_page: pageSize,
+      },
+    });
+  };
+
+  const pageSizeHandler = (current, size) => {
+    console.log(current, size);
+    dispatch({
+      type: 'users/getRemote',
+      payload: {
+        page: current,
+        per_page: size,
+      },
+    });
   };
 
   const closeHandler = () => {
@@ -133,12 +193,28 @@ const UserListPage: FC<UserPageProps> = ({
       <Button type="primary" onClick={addHandler}>
         添加联系人
       </Button>
-      <Table
+      <Button onClick={reloadHandler}>刷新reload</Button>
+      <ProTable
         columns={columns}
         dataSource={users.data}
         rowKey="id"
         loading={userListLoading}
+        request={requestHandler}
+        search={false}
+        actionRef={ref}
+        pagination={false}
       />
+      <Pagination
+        className="list-page"
+        total={users.meta.total}
+        onChange={paginationHandler}
+        onShowSizeChange={pageSizeHandler}
+        current={users.meta.page}
+        pageSize={users.meta.per_page}
+        showSizeChanger
+        showQuickJumper
+        showTotal={total => `Total ${total} items`}
+      ></Pagination>
       <UserModal
         visible={modalVisible}
         closeHandler={closeHandler}
